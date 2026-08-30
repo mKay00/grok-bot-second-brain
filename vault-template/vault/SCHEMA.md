@@ -30,9 +30,9 @@ The working file and the vault inbox have no YAML.
 
 One line per item:
 
-`YYYY-MM-DDTHH:MMZ | source: | text`
+`YYYY-MM-DDTHH:MMZ | source:<name> | text`
 
-Copies from an extra inbox add `writeback:` before the text. After the clarify fork, Capture deletes the line. No checkbox. No processed section.
+Copies from an extra inbox add `writeback:<tag|archive|leave|delete>` before the text. After the clarify fork, Capture deletes the line. No checkbox. No processed section.
 
 ## Working file
 

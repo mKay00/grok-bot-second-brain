@@ -24,9 +24,9 @@ test("filling extra inboxes interpolates each name and its write-back into Captu
   assert.match(capture, /paper:\s*delete/);
 });
 
-test("extra-inbox copies include writeback: and apply write-back only after the fork", () => {
+test("extra-inbox copies include writeback:<choice> and apply write-back only after the fork", () => {
   const capture = fillCapture();
-  assert.ok(capture.includes("writeback:"), "copies must include writeback: in the line");
+  assert.ok(capture.includes("`writeback:<tag|archive|leave|delete>`"), "copies must include writeback:<choice> in the line");
   assert.match(capture, /after the fork/i);
   assert.match(capture, /not at copy/i);
 });

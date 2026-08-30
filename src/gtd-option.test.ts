@@ -38,8 +38,10 @@ test("hybrid emit adds a projects list, extra verbs, and Conductor as the short 
   assert.deepEqual(tasks, ["next.md", "projects.md"]);
 
   const ops = extractBot(setupPrompt, "Ops");
-  assert.ok(ops.includes("`list_projects`"));
   assert.ok(ops.includes("`add_project`"));
+  assert.match(ops, /optional due/i);
+  assert.match(ops, /unknown GTD project/i);
+  assert.ok(!ops.includes("`list_projects`"));
   assert.ok(!ops.includes("`list_waiting`"));
   assert.ok(!ops.includes("`set_list`"));
 
@@ -68,6 +70,7 @@ test("mail-in-review on interpolates the archive warning into setup and Conducto
   assert.match(prompt, /archive, not delete/i);
   assert.match(prompt, /no Gmail API/i);
   assert.match(prompt, /no bot with mail access/i);
+  assert.match(prompt, /not the vault inbox/i);
   const conductor = extractBot(prompt, "Conductor");
   assert.match(conductor, /empty mail by hand/i);
   assert.match(conductor, /archive, not delete/i);
@@ -133,12 +136,14 @@ test("full emit keeps hybrid and adds waiting, someday, contexts, the eleven-ste
   assert.deepEqual(tasks, ["next.md", "projects.md", "someday.md", "waiting.md"]);
 
   const ops = extractBot(setupPrompt, "Ops");
-  assert.ok(ops.includes("`list_projects`"));
   assert.ok(ops.includes("`add_project`"));
-  assert.ok(ops.includes("`list_waiting`"));
-  assert.ok(ops.includes("`list_someday`"));
   assert.ok(ops.includes("`set_list`"));
+  assert.match(ops, /optional due/i);
   assert.match(ops, /optional contexts/i);
+  assert.match(ops, /unknown GTD project/i);
+  assert.ok(!ops.includes("`list_projects`"));
+  assert.ok(!ops.includes("`list_waiting`"));
+  assert.ok(!ops.includes("`list_someday`"));
 
   const conductor = extractBot(setupPrompt, "Conductor");
   assert.match(conductor, /eleven-step weekly review/i);
@@ -148,6 +153,7 @@ test("full emit keeps hybrid and adds waiting, someday, contexts, the eleven-ste
   assert.match(conductor, /Waiting For/);
   assert.match(conductor, /Someday/);
   assert.match(conductor, /vault inbox/);
+  assert.match(conductor, /Assign Capture/);
 
   const capture = extractBot(setupPrompt, "Capture");
   assert.match(capture, /2-minute rule/i);
