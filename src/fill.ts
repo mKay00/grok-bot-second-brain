@@ -158,19 +158,19 @@ function conductorCopy(offBoxCopy: OffBoxCopy): string {
 }
 
 function conductorGtd(answers: Pick<Answers, "gtdOption" | "mailInReview">): string {
+  const unusedDecay =
+    "Also list `current` claims unused 30 days and assign Memory to propose `decayed`; Memory alone may `set_status`.";
   switch (answers.gtdOption) {
     case "off":
       return "GTD is off: what's in flight only.";
     case "hybrid":
       return withMailInReview({
-        review:
-          "Conductor is the short weekly review: collect, inbox to zero, next actions, GTD projects, and the calendar already in front of the human.",
+        review: `Conductor is the short weekly review: collect, inbox to zero, next actions, GTD projects, and the calendar already in front of the human. ${unusedDecay}`,
         mailInReview: answers.mailInReview,
       });
     case "full":
       return withMailInReview({
-        review:
-          "Conductor is the official eleven-step weekly review. Get Clear: collect loose materials, inbox to zero, empty your head. Get Current: next actions and contexts, past calendar, upcoming calendar, Waiting For, GTD projects, relevant checklists. Get Creative: Someday/Maybe, then be creative. Assign Capture to get the vault inbox to zero. Memory refreshes in-flight from the GTD lists.",
+        review: `Conductor is the official eleven-step weekly review. Get Clear: collect loose materials, inbox to zero, empty your head. Get Current: next actions and contexts, past calendar, upcoming calendar, Waiting For, GTD projects, relevant checklists. Get Creative: Someday/Maybe, then be creative. Assign Capture to get the vault inbox to zero. Memory refreshes in-flight from the GTD lists. ${unusedDecay}`,
         mailInReview: answers.mailInReview,
       });
     default: {
@@ -492,11 +492,13 @@ function ladderStep(answers: Pick<Answers, "ladderRung" | "graphitiStore">): str
 
 function routinesStep(args: { gtdOption: GtdOption; offBoxCopy: OffBoxCopy }): string {
   const weekly = args.gtdOption === "off" ? "No weekly-review routine." : "Install the weekly review on Conductor.";
+  const decay =
+    "Install a monthly Memory decay routine: `current` claims unused 30 days (by `last_used`, or `recorded_at` if never read) are proposed `decayed`. That selection does not record use. Stop for approval before `set_status`.";
   const copy =
     args.offBoxCopy.kind === "git" || args.offBoxCopy.kind === "cloud"
       ? "Install a daily Memory copy routine. It is a no-op if the path has not changed."
       : "No standing copy routine.";
-  return `${weekly} ${copy}`;
+  return `${weekly} ${decay} ${copy}`;
 }
 
 function offBoxStep(offBoxCopy: OffBoxCopy): string {

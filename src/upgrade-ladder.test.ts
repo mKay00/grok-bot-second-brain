@@ -69,8 +69,10 @@ test("the plan names Memory API verbs, claim fields, and when later rungs earn t
   assert.match(plan, /all five may/i);
   assert.match(
     plan,
-    /a claim carries id, statement, status \(candidate \/ current \/ conflict \/ decayed\), entities, valid_from, valid_to, recorded_at, provenance, and supersession links/i,
+    /a claim carries id, statement, status \(candidate \/ current \/ conflict \/ decayed\), entities, valid_from, valid_to, recorded_at, provenance, supersession links, `last_used`, and `use_count`/i,
   );
+  assert.match(plan, /`append` starts `use_count` at 0/i);
+  assert.match(plan, /store records use on `get`, `query`, `current`, `as_of`, and `related`/i);
   assert.match(plan, /next actions stay out of the ledger/i);
   assert.match(plan, /vault notes stay markdown/i);
   assert.match(plan, /one to three thousand claims/i);

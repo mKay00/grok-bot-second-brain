@@ -33,8 +33,8 @@ The Grok Bot that is the file owner of every configured inbox. It copies each ex
 _Avoid_: GTD capture (the step), manage in place
 
 **Memory**:
-The named Grok Bot that is the file owner of the ledger and of the working file. Distinct from official per-bot summaries and from the Memory API. Runs the off-box copy when the method is git or cloud.
-_Avoid_: official memory (for the teammate), Memory API (for the teammate)
+The named Grok Bot that is the file owner of the ledger and of the working file. Distinct from official per-bot summaries and from the Memory API. Owns write-time consolidate, the monthly decay routine, and the off-box copy when the method is git or cloud.
+_Avoid_: official memory (for the teammate), Memory API (for the teammate), Conductor (for ledger writes)
 
 **Ops**:
 The Grok Bot that writes next actions to the task backend.
@@ -117,15 +117,15 @@ A hybrid or full flag. If on, the weekly review includes emptying mail by hand, 
 _Avoid_: extra inbox (for this flag), Gmail connector
 
 **Working file**:
-The small, rewritten hot-memory document every bot reads at the start of a task. Sections are Identity, State, Decisions, Corrections, People, Dead, and in-flight. Sections are replaced, never appended. In-flight is pulled from the live task backend and shaped by the GTD option. Ceiling is four thousand tokens.
-_Avoid_: working memory (as a product), context dump, transcript, markdown mirror of Todoist
+The small, rewritten hot-memory document every bot reads at the start of a task. Sections are Identity, State, Decisions, Corrections, People, Dead, and in-flight. Sections are replaced, never appended. Dead is hot-memory for wrong or finished decisions; it is not the ledger's decayed status and does not auto-fill when a claim decays. In-flight is pulled from the live task backend and shaped by the GTD option. Ceiling is four thousand tokens.
+_Avoid_: working memory (as a product), context dump, transcript, markdown mirror of Todoist, grave.md
 
 **Ledger**:
-The append-only store of durable claims and their provenance, status, and use. Next actions do not belong here.
+The append-only store of durable claims and their provenance, status, and use (`last_used`, `use_count`). Next actions do not belong here.
 _Avoid_: knowledge graph, memory database, transcript log
 
 **Claim**:
-One durable statement the system is willing to keep, with a status of candidate, current, conflict, or decayed, and a time window for when it was treated as true.
+One durable statement the system is willing to keep, with a status of candidate, current, conflict, or decayed, a time window for when it was treated as true, and use fields (`last_used`, `use_count`) so silence can earn decay.
 _Avoid_: memory, note, fact (unless it has passed confirm), episode, triplet
 
 **Source archive**:
@@ -157,8 +157,8 @@ A task backend that is one tasks database. A list property holds next, waiting, 
 _Avoid_: Notion wiki, Notion second brain, second task store, overloading done with GTD lists
 
 **Memory API**:
-The only way bots read and write claims. Verbs are append, get, query, set_status, current, as_of, and related. Only Memory may append and set_status. All five may get, query, current, as_of, and related. Prompts never name a file, SQL, or Cypher.
-_Avoid_: ledger.jsonl, grepping the store, Graphiti tools, add_memory
+The only way bots read and write claims. Verbs are append, get, query, set_status, current, as_of, and related. Only Memory may append and set_status. All five may get, query, current, as_of, and related. The store records use on those five reads: each claim id in a non-empty result gets use_count bumped and last_used set; empty results touch nothing. append starts use_count at 0 and leaves last_used empty until a read. Reader bots do not write use. Decay selection by last_used or recorded_at does not record use. Prompts never name a file, SQL, or Cypher.
+_Avoid_: ledger.jsonl, grepping the store, Graphiti tools, add_memory, a use-write verb
 
 **Upgrade ladder**:
 The planned store path: JSONL ledger, then SQLite when scans hurt, then Graphiti on Neo4j or FalkorDB when questions are paths or time-travel. The vault and the memory API stay; only the ledger engine changes. Kuzu is not a rung.
@@ -177,7 +177,7 @@ The official Grok Bot description for one roster member. A shared preamble plus 
 _Avoid_: system prompt, skill (for the standing text), six prompts
 
 **Review point**:
-The standing stop in a bot prompt. Stop before send, publish, set_status off candidate, a Task API write that turn did not already approve, the first off-box copy, or an off-box copy method change. Capture's clarify-fork yes is approval for the Ops write.
+The standing stop in a bot prompt. Stop before send, publish, set_status off a live status (candidate, current, or conflict), a Task API write that turn did not already approve, the first off-box copy, or an off-box copy method change. Capture's clarify-fork yes is approval for the Ops write. A monthly Memory decay routine proposes unused-30-day current claims as decayed and waits for the same stop before set_status.
 _Avoid_: weekly review (for this stop)
 
 **First-task test**:

@@ -56,8 +56,12 @@ One durable statement, with a status of candidate, current, conflict, or decayed
 - `recorded_at`, when the ledger learned it
 - `provenance`, a pointer into the source archive or the vault note that justified the write
 - `supersedes` / `superseded_by`
+- `last_used`, empty until a read hits this claim
+- `use_count`, starts at 0 on `append`
 
 `valid_from` / `valid_to` plus `recorded_at` is the cheap version of Graphiti's four edge times: when the fact became true, when it stopped, when the system learned it, and when the system learned it was over. Zep's docs, which sit on Graphiti, name those `valid_at`, `invalid_at`, `created_at`, and `expired_at`. Put the first two on the claim on day one so time-travel is not a graph-only feature. [10][11]
+
+The store records use on `get`, `query`, `current`, `as_of`, and `related`: each claim id in a non-empty result gets `use_count` bumped and `last_used` set. Empty results touch nothing. Reader bots do not write use. Silence without use is what earns decay. A decay scan that ages by `last_used` (or `recorded_at` if never read) does not count as use.
 
 The API never writes vault notes. Next actions never enter the ledger. Those stay in the task backend.
 

@@ -20,9 +20,9 @@ GTD itself is optional. Off keeps the fork, PARA, and a flat next list. Hybrid a
 
 The default ledger engine is JSONL. SQLite is the next engine when filtered reads hurt, around one to three thousand claims. That mark is a JSONL-pain tripwire, not a SQLite capacity limit. Graphiti earns its keep for paths or time-travel. Every rung sits behind the same Memory API. See `research/how-do-we-upgrade-jsonl-to-sqlite-to-a-kg.md`.
 
-Memory API verbs are `append`, `get`, `query`, `set_status`, `current`, `as_of`, and `related`. Only Memory may `append` and `set_status`. All five may `get`, `query`, `current`, `as_of`, and `related`.
+Memory API verbs are `append`, `get`, `query`, `set_status`, `current`, `as_of`, and `related`. Only Memory may `append` and `set_status`. All five may `get`, `query`, `current`, `as_of`, and `related`. The store records use on `get`, `query`, `current`, `as_of`, and `related`: each claim id in a non-empty result gets `use_count` bumped and `last_used` set; empty results touch nothing. Reader bots do not write use. `append` starts `use_count` at 0 and leaves `last_used` empty until a read.
 
-A claim carries id, statement, status (candidate / current / conflict / decayed), entities, valid_from, valid_to, recorded_at, provenance, and supersession links. Next actions stay out of the ledger. Vault notes stay markdown.
+A claim carries id, statement, status (candidate / current / conflict / decayed), entities, valid_from, valid_to, recorded_at, provenance, supersession links, `last_used`, and `use_count`. Next actions stay out of the ledger. Vault notes stay markdown.
 
 ## What setup assumes
 
@@ -53,7 +53,7 @@ Fill these when you stand it up. Combinations are slots, not files. This repo ho
 
 Skipped-slot defaults: path `/workspace/second-brain/`, connectors none, backend markdown, mail-in-review off, extra inboxes empty, write-back tag, ladder JSONL, Graphiti store Neo4j. Display name, GTD option, and off-box copy have no silent default.
 
-The off-box copy is the whole path: vault, ledger directory, and the markdown task store when that store is live. JSONL and SQLite files under that path are in. A Graphiti store is not. Restore is copy that tree back onto the path. No sync daemon on the VM. Git and cloud install a daily Memory routine that no-ops if the path has not changed. Folder and skip install no routine.
+The off-box copy is the whole path: vault, ledger directory, and the markdown task store when that store is live. JSONL and SQLite files under that path are in. A Graphiti store is not. Restore is copy that tree back onto the path. No sync daemon on the VM. Git and cloud install a daily Memory routine that no-ops if the path has not changed. Folder and skip install no standing copy routine. Every GTD option installs a monthly Memory decay routine: `current` claims unused 30 days (by `last_used`, or `recorded_at` if never read) are proposed `decayed`. That selection does not record use. Then stop for approval before `set_status`.
 
 ## Worked example
 
@@ -115,11 +115,11 @@ Outcome: Durable claims, a current working file, and the off-box copy when the m
 
 Sources: Working file. Memory API. Group chat. Vault notes it is filing as reference.
 
-Constraints: Only Memory writes claims. `append` as `candidate`. Rewrite working-file sections, never append to them. Respect the section caps. File a PARA note only after a clarify-fork yes that named reference, or a human "file this." {{memory_inflight}} {{memory_copy}}
+Constraints: Only Memory writes claims. Before `append`, `related`-query. A restatement `append`s a `candidate` with `supersedes` / `superseded_by`; the old `current` stays until that `candidate` is promoted, then leaves `current`. A contradiction proposes `conflict` on the live claim and stops before `set_status`. `append` as `candidate`. Rewrite working-file sections, never append to them. Respect the section caps. File a PARA note only after a clarify-fork yes that named reference, or a human "file this." {{memory_inflight}} {{memory_copy}}
 
 Deliverable: Candidate claims with provenance. Rewritten working-file sections. PARA reference notes. {{memory_deliverable}}
 
-Review point: Before `set_status` off `candidate`. {{memory_review}}
+Review point: Before `set_status` off a live status (`candidate`, `current`, or `conflict`). {{memory_review}}
 
 Never: Any inbox, tasks, drafts, publish.
 <!-- /template:bot-memory -->

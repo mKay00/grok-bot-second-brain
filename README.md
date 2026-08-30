@@ -27,7 +27,7 @@ Do this if you are the Grok Bot that was handed this repo. Read `PLAN.md` before
 5. **Connectors first.** If they picked Todoist or a Notion-class product, they install that connector in Settings before any roster bot exists. Done when they say it is installed, or they picked none.
 6. **Create the five bots.** They use New → Create new agent → Bot actions → Edit Profile. You paste Conductor, Capture, Memory, Ops, and Research, one description each. Leave an existing Chief of Staff out of this group and tell it to ask Conductor. Done when those five exist with the interpolated descriptions.
 7. **One group chat** with those five only. Done when the room exists.
-8. **Routines** the answers require. Hybrid or full: weekly review on Conductor. Git or cloud: daily Memory copy that no-ops if the path has not changed. Folder and skip: no copy routine. This step needs the desktop app. Done when the required routines exist, or none were required.
+8. **Routines** the answers require. Every GTD option: monthly Memory decay (`current` unused 30 days proposed `decayed`). Hybrid or full: weekly review on Conductor. Git or cloud: daily Memory copy that no-ops if the path has not changed. Folder and skip: no copy routine. This step needs the desktop app. Done when those routines exist.
 9. **First-task tests** from the emitted setup prompt. Pass is the deliverable plus the never-do. Fail means fix that description, then rerun that test. Done when all five pass.
 10. **First off-box copy** if they did not pick skip. Stop and get a yes. Memory pushes or uploads for git or cloud. They copy on their own machine for folder. Done when a copy of the path exists off this computer, or skip was the answer.
 
