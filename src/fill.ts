@@ -170,7 +170,7 @@ function conductorGtd(answers: Pick<Answers, "gtdOption" | "mailInReview">): str
     case "full":
       return withMailInReview({
         review:
-          "Conductor is the official eleven-step weekly review. Get Clear: collect loose materials, inbox to zero, empty your head. Get Current: next actions and contexts, past calendar, upcoming calendar, Waiting For, GTD projects, relevant checklists. Get Creative: Someday/Maybe, then be creative. Run against the vault inbox and the GTD lists.",
+          "Conductor is the official eleven-step weekly review. Get Clear: collect loose materials, inbox to zero, empty your head. Get Current: next actions and contexts, past calendar, upcoming calendar, Waiting For, GTD projects, relevant checklists. Get Creative: Someday/Maybe, then be creative. Assign Capture to get the vault inbox to zero. Memory refreshes in-flight from the GTD lists.",
         mailInReview: answers.mailInReview,
       });
     default: {
@@ -191,7 +191,7 @@ function mailInReviewStep(answers: Pick<Answers, "gtdOption" | "mailInReview">):
   if (answers.gtdOption === "off" || !answers.mailInReview) {
     return "";
   }
-  return "Mail-in-review is on. Empty mail by hand during the weekly review: archive, not delete. This takes mail out of the inbox. Do not enable it if the inbox is still a holding pen. No Gmail API. No bot with mail access.";
+  return "Mail-in-review is on. Empty mail by hand during the weekly review: archive, not delete. This takes mail out of mail, not the vault inbox. Do not enable it if mail is still a holding pen. No Gmail API. No bot with mail access.";
 }
 
 function twoMinuteRule(gtdOption: GtdOption): string {
@@ -229,7 +229,7 @@ function captureDeliverable(extraInboxes: readonly ExtraInbox[]): string {
   if (extraInboxes.length === 0) {
     return "No source write-back.";
   }
-  return "Copies from an extra inbox include `writeback:` in the line. Apply that source write-back when the line is removed.";
+  return "Copies from an extra inbox include `writeback:<tag|archive|leave|delete>` in the line. Apply that source write-back when the line is removed.";
 }
 
 function memoryInflight(gtdOption: GtdOption): string {
@@ -316,11 +316,11 @@ function memoryDeliverable(offBoxCopy: OffBoxCopy): string {
 function taskApiVerbs(gtdOption: GtdOption): string {
   switch (gtdOption) {
     case "off":
-      return "`add`, `complete`, and `list_open`. `add` may carry an optional due";
+      return "`add` and `complete`. `add` may carry an optional due";
     case "hybrid":
-      return "`add`, `complete`, `list_open`, `list_projects`, and `add_project`";
+      return "`add`, `complete`, and `add_project`. `add` may carry an optional due. An unknown GTD project name on `add` creates that project, then files the next action";
     case "full":
-      return "`add`, `complete`, `list_open`, `list_projects`, `add_project`, `list_waiting`, `list_someday`, and `set_list`. `add` may carry an optional due and an optional contexts list";
+      return "`add`, `complete`, `add_project`, and `set_list`. `add` may carry an optional due and an optional contexts list. An unknown GTD project name on `add` creates that project, then files the next action";
     default: {
       const _exhaustive: never = gtdOption;
       return _exhaustive;
