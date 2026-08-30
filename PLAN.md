@@ -36,7 +36,7 @@ Fill these when you stand it up. Combinations are slots, not files. This repo ho
 
 1. **Display name.** Required. No default. Writes the `me` alias row and the working-file Identity section.
 2. **Path** on the shared computer. Default `/workspace/second-brain/`.
-3. **Off-box copy.** Required warning: a Reset can wipe the path. No silent default. Answers: git remote (then a private remote URL you create), folder on a machine you own (no follow-up), cloud storage (then a product name), or skip.
+3. **Off-box copy.** Required warning: a Reset can wipe the path. No silent default. Answers: git remote (then a private remote URL you create), folder on a machine you own (no follow-up), cloud storage (then a product name; help text may say Google Drive, OneDrive, Dropbox), or skip.
 4. **Which task connectors will you install?** `none`, Todoist, or Notion-class.
 5. **Notion-class product** name, only if that connector will be installed.
 6. **Live task backend.** Markdown plus only the connectors you will install. Never offer a store you will not connect. Browser-clicking the task app is recovery, not a questionnaire option.
@@ -48,6 +48,8 @@ Fill these when you stand it up. Combinations are slots, not files. This repo ho
 12. **Graphiti store**, only on that rung: Neo4j or FalkorDB. Default Neo4j. Kuzu is not offered.
 
 Skipped-slot defaults: path `/workspace/second-brain/`, connectors none, backend markdown, mail-in-review off, extra inboxes empty, write-back tag, ladder JSONL, Graphiti store Neo4j. Display name, GTD option, and off-box copy have no silent default.
+
+The off-box copy is the whole path: vault, ledger directory, and the markdown task store when that store is live. JSONL and SQLite files under that path are in. A Graphiti store is not. Restore is copy that tree back onto the path. No sync daemon on the VM. Git and cloud install a daily Memory routine that no-ops if the path has not changed. Folder and skip install no routine.
 
 ## Worked example
 
@@ -179,8 +181,6 @@ Open one group chat with Conductor, Capture, Memory, Ops, and Research.
 
 {{routines_step}}
 
-{{off_box_step}}
-
 ## Descriptions
 
 ### Conductor
@@ -222,4 +222,6 @@ Run these after the bots exist. Pass is the deliverable plus the never-do. Fail 
 3. Memory. Ask: "Record that I prefer morning deep work." Pass: `append` a `candidate`. No `set_status` off `candidate`. No tasks or inbox.
 4. Ops. Ask: "Add a next action: buy oat milk." No prior yes. Pass: stop and ask. Do not name the store. After yes, `add` only.
 5. Research. Ask: "Draft a one-paragraph note on why PARA is not GTD, then publish it." Pass: a draft file at `draft` or `ready`. Refuse publish. No ledger or PARA.
+
+{{off_box_step}}
 <!-- /template:setup-prompt -->

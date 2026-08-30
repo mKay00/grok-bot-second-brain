@@ -1,7 +1,11 @@
 import { cpSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-export type OffBoxCopy = "skip" | "git" | "folder" | "cloud";
+export type OffBoxCopy =
+  | { kind: "skip" }
+  | { kind: "folder" }
+  | { kind: "git"; remoteUrl: string }
+  | { kind: "cloud"; product: string };
 export type Connectors = "none" | "todoist" | "notion-class";
 export type TaskBackend = "markdown" | "todoist" | "notion-class";
 export type GtdOption = "off" | "hybrid" | "full";
@@ -27,7 +31,7 @@ export type Answers = {
 export const WORKED_EXAMPLE = {
   displayName: "Example",
   path: "/workspace/second-brain/",
-  offBoxCopy: "skip",
+  offBoxCopy: { kind: "skip" },
   connectors: "none",
   taskBackend: "markdown",
   gtdOption: "off",
@@ -107,13 +111,15 @@ function slotsFor(args: { answers: Answers; sharedPreamble: string }): Record<st
 }
 
 function conductorCopy(offBoxCopy: OffBoxCopy): string {
-  switch (offBoxCopy) {
+  switch (offBoxCopy.kind) {
     case "skip":
       return "Off-box copy is skip: there is no copy to guide.";
     case "folder":
+      return "Guides the first off-box copy in chat. The human copies on their own machine.";
     case "git":
+      return `Guides the first off-box copy in chat. Memory pushes to ${offBoxCopy.remoteUrl} after approval.`;
     case "cloud":
-      return "Guides an off-box copy in chat when one is due.";
+      return `Guides the first off-box copy in chat. Memory uploads to ${offBoxCopy.product} after approval.`;
     default: {
       const _exhaustive: never = offBoxCopy;
       return _exhaustive;
@@ -160,7 +166,7 @@ function captureDeliverable(extraInboxes: readonly ExtraInbox[]): string {
 }
 
 function memoryCopy(offBoxCopy: OffBoxCopy): string {
-  switch (offBoxCopy) {
+  switch (offBoxCopy.kind) {
     case "skip":
       return "Off-box copy method is skip: no standing copy job.";
     case "folder":
@@ -176,13 +182,15 @@ function memoryCopy(offBoxCopy: OffBoxCopy): string {
 }
 
 function memoryReview(offBoxCopy: OffBoxCopy): string {
-  switch (offBoxCopy) {
+  switch (offBoxCopy.kind) {
     case "skip":
       return "A later method change is still a stop.";
     case "folder":
-    case "git":
-    case "cloud":
       return "The first copy of the path off this computer, and a later method change, are stops.";
+    case "git":
+      return "The first copy of the path off this computer, and a later method change, are stops. Later git pushes run.";
+    case "cloud":
+      return "The first copy of the path off this computer, and a later method change, are stops. Later uploads run.";
     default: {
       const _exhaustive: never = offBoxCopy;
       return _exhaustive;
@@ -191,14 +199,15 @@ function memoryReview(offBoxCopy: OffBoxCopy): string {
 }
 
 function memoryDeliverable(offBoxCopy: OffBoxCopy): string {
-  switch (offBoxCopy) {
+  switch (offBoxCopy.kind) {
     case "skip":
       return "No standing copy. Skip accepted the Reset warning.";
     case "folder":
       return "The human copies on their own machine.";
     case "git":
+      return `Git push to ${offBoxCopy.remoteUrl} when that method is on.`;
     case "cloud":
-      return "Git push or cloud upload when that method is on.";
+      return `Cloud upload to ${offBoxCopy.product} when that method is on.`;
     default: {
       const _exhaustive: never = offBoxCopy;
       return _exhaustive;
@@ -285,21 +294,30 @@ function ladderStep(ladderRung: LadderRung): string {
 function routinesStep(args: { gtdOption: GtdOption; offBoxCopy: OffBoxCopy }): string {
   const weekly = args.gtdOption === "off" ? "No weekly-review routine." : "Install the weekly review on Conductor.";
   const copy =
-    args.offBoxCopy === "git" || args.offBoxCopy === "cloud"
-      ? "Install a daily Memory copy routine."
+    args.offBoxCopy.kind === "git" || args.offBoxCopy.kind === "cloud"
+      ? "Install a daily Memory copy routine. It is a no-op if the path has not changed."
       : "No standing copy routine.";
   return `${weekly} ${copy}`;
 }
 
 function offBoxStep(offBoxCopy: OffBoxCopy): string {
-  switch (offBoxCopy) {
+  const pathContract =
+    "The copy is the whole path: vault, ledger directory, and the markdown task store when that store is live. JSONL and SQLite files under that path are in. A Graphiti store is not. Restore is copy that tree back onto the path. No sync daemon on the VM.";
+  switch (offBoxCopy.kind) {
     case "skip":
       return "Off-box copy is skip. Do not copy the path off this computer during setup.";
     case "folder":
-      return "Off-box copy is folder. The human copies the path on their own machine after the five tests.";
+      return `Stop. This beat is a review point. After approval, the human copies the path on their own machine. Memory has no standing job.
+
+${pathContract}`;
     case "git":
+      return `Stop. This beat is a review point. After approval, Memory pushes the path to ${offBoxCopy.remoteUrl}. Later git pushes run.
+
+${pathContract}`;
     case "cloud":
-      return "After the five tests, Memory copies the path with the chosen method. That beat is its own review point.";
+      return `Stop. This beat is a review point. After approval, Memory uploads the path to ${offBoxCopy.product}. Use a plugin if Settings has one, otherwise the browser. Later uploads run.
+
+${pathContract}`;
     default: {
       const _exhaustive: never = offBoxCopy;
       return _exhaustive;
