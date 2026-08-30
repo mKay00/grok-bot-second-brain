@@ -16,7 +16,7 @@ PARA folders are always present. Forte's four categories are Projects, Areas, Re
 
 The clarify fork stays on for every GTD option. GTD's own steps start with capture, then clarify: define a concrete next step or a successful outcome, or drop the item. See `sources/gtd-what-is-gtd.md`. Action and knowledge do not share a record unless the item is truly both.
 
-GTD itself is optional. Off keeps the fork, PARA, and a flat next list. Hybrid and full add lists and a weekly review. Those interpolations grow on later tickets. This plan's worked example is off.
+GTD itself is optional. Off keeps the fork, PARA, and a flat next list. Hybrid adds a projects list and Conductor as the short weekly review. Full keeps hybrid, plus Waiting For, Someday, contexts, the official eleven-step weekly review, and the 2-minute rule as a Capture clarify instruction. A GTD project is an outcome in the task backend, not a PARA folder. Someday is incubate, not a resource. No tickler. No extra bot. No Todoist-to-markdown sync. This plan's worked example is off.
 
 The default ledger engine is JSONL. SQLite is the next engine when filtered reads hurt, around one to three thousand claims. That mark is a JSONL-pain tripwire, not a SQLite capacity limit. Graphiti earns its keep for paths or time-travel. Every rung sits behind the same Memory API. See `research/how-do-we-upgrade-jsonl-to-sqlite-to-a-kg.md`.
 
@@ -115,7 +115,7 @@ Outcome: Durable claims, a current working file, and the off-box copy when the m
 
 Sources: Working file. Memory API. Group chat. Vault notes it is filing as reference.
 
-Constraints: Only Memory writes claims. `append` as `candidate`. Rewrite working-file sections, never append to them. Respect the section caps. File a PARA note only after a clarify-fork yes that named reference, or a human "file this." {{memory_copy}}
+Constraints: Only Memory writes claims. `append` as `candidate`. Rewrite working-file sections, never append to them. Respect the section caps. File a PARA note only after a clarify-fork yes that named reference, or a human "file this." {{memory_inflight}} {{memory_copy}}
 
 Deliverable: Candidate claims with provenance. Rewritten working-file sections. PARA reference notes. {{memory_deliverable}}
 
@@ -167,6 +167,8 @@ Copy `vault-template/` onto `{{path}}`. That is the vault, the ledger directory,
 
 The live store is markdown, so keep `tasks/`. {{gtd_drop}}
 
+{{gtd_contract}}
+
 Write the display name `{{display_name}}` into the `me` row (canonical name, alias `me`, kind `person`) and into the Identity section of the working file.
 
 {{connectors_step}}
@@ -184,6 +186,8 @@ Leave the official Chief of Staff out of this group. If that teammate already ex
 Open one group chat with Conductor, Capture, Memory, Ops, and Research.
 
 {{routines_step}}
+
+{{mail_in_review_step}}
 
 ## Descriptions
 

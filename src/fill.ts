@@ -25,6 +25,7 @@ export type Answers = {
   connectors: Connectors;
   taskBackend: TaskBackend;
   gtdOption: GtdOption;
+  mailInReview: boolean;
   extraInboxes: readonly ExtraInbox[];
   ladderRung: LadderRung;
   graphitiStore: GraphitiStore;
@@ -37,6 +38,7 @@ export const WORKED_EXAMPLE = {
   connectors: "none",
   taskBackend: "markdown",
   gtdOption: "off",
+  mailInReview: false,
   extraInboxes: [],
   ladderRung: "jsonl",
   graphitiStore: "neo4j",
@@ -95,14 +97,19 @@ function slotsFor(args: { answers: Answers; sharedPreamble: string }): Record<st
     shared_preamble: args.sharedPreamble,
     display_name: answers.displayName,
     path: answers.path,
-    conductor_gtd: conductorGtd(answers.gtdOption),
+    conductor_gtd: conductorGtd(answers),
+    mail_in_review_step: mailInReviewStep(answers),
     conductor_copy: conductorCopy(answers.offBoxCopy),
     capture_sources: captureSources(answers.extraInboxes),
-    capture_constraints: captureConstraints(answers.extraInboxes),
+    capture_constraints: [captureConstraints(answers.extraInboxes), twoMinuteRule(answers.gtdOption)]
+      .filter((part) => part !== "")
+      .join(" "),
     capture_deliverable: captureDeliverable(answers.extraInboxes),
     memory_copy: memoryCopy(answers.offBoxCopy),
+    memory_inflight: memoryInflight(answers.gtdOption),
     memory_deliverable: memoryDeliverable(answers.offBoxCopy),
     memory_review: memoryReview(answers.offBoxCopy),
+    gtd_contract: gtdContract(answers.gtdOption),
     task_api_verbs: taskApiVerbs(answers.gtdOption),
     ops_deliverable: opsDeliverable(answers.gtdOption),
     gtd_drop: gtdDrop(answers),
@@ -130,12 +137,49 @@ function conductorCopy(offBoxCopy: OffBoxCopy): string {
   }
 }
 
-function conductorGtd(gtdOption: GtdOption): string {
-  switch (gtdOption) {
+function conductorGtd(answers: Pick<Answers, "gtdOption" | "mailInReview">): string {
+  switch (answers.gtdOption) {
     case "off":
       return "GTD is off: what's in flight only.";
     case "hybrid":
+      return withMailInReview({
+        review:
+          "Conductor is the short weekly review: collect, inbox to zero, next actions, GTD projects, and the calendar already in front of the human.",
+        mailInReview: answers.mailInReview,
+      });
     case "full":
+      return withMailInReview({
+        review:
+          "Conductor is the official eleven-step weekly review. Get Clear: collect loose materials, inbox to zero, empty your head. Get Current: next actions and contexts, past calendar, upcoming calendar, Waiting For, GTD projects, relevant checklists. Get Creative: Someday/Maybe, then be creative. Run against the vault inbox and the GTD lists.",
+        mailInReview: answers.mailInReview,
+      });
+    default: {
+      const _exhaustive: never = answers.gtdOption;
+      return _exhaustive;
+    }
+  }
+}
+
+function withMailInReview(args: { review: string; mailInReview: boolean }): string {
+  if (!args.mailInReview) {
+    return args.review;
+  }
+  return `${args.review} Empty mail by hand: archive, not delete.`;
+}
+
+function mailInReviewStep(answers: Pick<Answers, "gtdOption" | "mailInReview">): string {
+  if (answers.gtdOption === "off" || !answers.mailInReview) {
+    return "";
+  }
+  return "Mail-in-review is on. Empty mail by hand during the weekly review: archive, not delete. This takes mail out of the inbox. Do not enable it if the inbox is still a holding pen. No Gmail API. No bot with mail access.";
+}
+
+function twoMinuteRule(gtdOption: GtdOption): string {
+  switch (gtdOption) {
+    case "full":
+      return "The 2-minute rule is a clarify instruction: if an action takes under two minutes, offer it as do-now.";
+    case "off":
+    case "hybrid":
       return "";
     default: {
       const _exhaustive: never = gtdOption;
@@ -166,6 +210,37 @@ function captureDeliverable(extraInboxes: readonly ExtraInbox[]): string {
     return "No source write-back.";
   }
   return "Copies from an extra inbox include `writeback:` in the line. Apply that source write-back when the line is removed.";
+}
+
+function memoryInflight(gtdOption: GtdOption): string {
+  switch (gtdOption) {
+    case "off":
+      return "At task start, replace In-flight from `list_open`.";
+    case "hybrid":
+      return "At task start, replace In-flight from `list_open` and `list_projects`.";
+    case "full":
+      return "At task start, replace In-flight from `list_open`, `list_projects`, `list_waiting`, and `list_someday`.";
+    default: {
+      const _exhaustive: never = gtdOption;
+      return _exhaustive;
+    }
+  }
+}
+
+function gtdContract(gtdOption: GtdOption): string {
+  const base =
+    "A GTD project is an outcome in the task backend, not a PARA folder. No Todoist-to-markdown sync.";
+  switch (gtdOption) {
+    case "full":
+      return `${base} Someday is incubate, not a resource.`;
+    case "off":
+    case "hybrid":
+      return base;
+    default: {
+      const _exhaustive: never = gtdOption;
+      return _exhaustive;
+    }
+  }
 }
 
 function memoryCopy(offBoxCopy: OffBoxCopy): string {
@@ -225,7 +300,7 @@ function taskApiVerbs(gtdOption: GtdOption): string {
     case "hybrid":
       return "`add`, `complete`, `list_open`, `list_projects`, and `add_project`";
     case "full":
-      return "`add`, `complete`, `list_open`, `list_projects`, `add_project`, `list_waiting`, `list_someday`, and `set_list`";
+      return "`add`, `complete`, `list_open`, `list_projects`, `add_project`, `list_waiting`, `list_someday`, and `set_list`. `add` may carry an optional due and an optional contexts list";
     default: {
       const _exhaustive: never = gtdOption;
       return _exhaustive;
@@ -238,6 +313,7 @@ function opsDeliverable(gtdOption: GtdOption): string {
     case "off":
       return "`add` / `complete` as asked.";
     case "hybrid":
+      return "`add` / `complete` / `add_project` as asked.";
     case "full":
       return "`add` / `complete` / `add_project` / `set_list` as asked.";
     default: {
