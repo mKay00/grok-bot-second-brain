@@ -8,7 +8,7 @@ That is why this plan refuses a 26-bot runtime. The seed conversation and `sourc
 
 Conductor is the dispatcher. It is not the official Chief of Staff. If that official job already exists, it asks Conductor. The second-brain group is the five named above.
 
-Official memory is per-bot summaries, preferences, and facts. It is not a vault and not a ledger. Changing facts stay in the source system. See `sources/xai-docs-grok-bot-bots.md`. Claims in this system go through a Memory API we define. Next actions go through a Task API. Prompts never name the ledger file, SQL, Cypher, a plugin, a Notion database, or a task-store path.
+Official memory is per-bot summaries, preferences, and facts. It is not a vault and not a ledger. Changing facts stay in the source system. See `sources/xai-docs-grok-bot-bots.md`. Claims in this system go through a Memory API we define. Next actions go through a Task API. Prompts never name the ledger file, SQL, Cypher, Graphiti episodes, a plugin, a Notion database, or a task-store path.
 
 Every bot shares one user-scoped computer. Files, cookies, logins, and `/workspace` are visible to all of them. Separate bots are not a security boundary. See `sources/xai-docs-grok-bot-overview.md`.
 
@@ -18,7 +18,11 @@ The clarify fork stays on for every GTD option. GTD's own steps start with captu
 
 GTD itself is optional. Off keeps the fork, PARA, and a flat next list. Hybrid and full add lists and a weekly review. Those interpolations grow on later tickets. This plan's worked example is off.
 
-The default ledger engine is JSONL. SQLite and Graphiti are later rungs behind the same Memory API. Kuzu is not a rung.
+The default ledger engine is JSONL. SQLite is the next engine when filtered reads hurt, around one to three thousand claims. That mark is a JSONL-pain tripwire, not a SQLite capacity limit. Graphiti earns its keep for paths or time-travel. Every rung sits behind the same Memory API. See `research/how-do-we-upgrade-jsonl-to-sqlite-to-a-kg.md`.
+
+Memory API verbs are `append`, `get`, `query`, `set_status`, `current`, `as_of`, and `related`. Only Memory may `append` and `set_status`. All five may `get`, `query`, `current`, `as_of`, and `related`.
+
+A claim carries id, statement, status (candidate / current / conflict / decayed), entities, valid_from, valid_to, recorded_at, provenance, and supersession links. Next actions stay out of the ledger. Vault notes stay markdown.
 
 ## What setup assumes
 
@@ -45,7 +49,7 @@ Fill these when you stand it up. Combinations are slots, not files. This repo ho
 9. **Extra inboxes.** One name per line. Empty means the vault inbox only. Mail is an example. No preset list.
 10. **Write-back** per extra name: tag, archive, leave, or delete. Default tag. Delete is irreversible. Runs when the vault-inbox line is removed, not at copy.
 11. **Ladder rung.** JSONL, SQLite, or Graphiti.
-12. **Graphiti store**, only on that rung: Neo4j or FalkorDB. Default Neo4j. Kuzu is not offered.
+12. **Graphiti store**, only on that rung: Neo4j or FalkorDB. Default Neo4j.
 
 Skipped-slot defaults: path `/workspace/second-brain/`, connectors none, backend markdown, mail-in-review off, extra inboxes empty, write-back tag, ladder JSONL, Graphiti store Neo4j. Display name, GTD option, and off-box copy have no silent default.
 
@@ -69,7 +73,7 @@ Filling those answers emits the setup prompt below. Later tickets grow other fil
 ## Templates
 
 <!-- template:shared-preamble -->
-You share one computer with Conductor, Capture, Memory, Ops, and Research. Files and logins are visible to all of them. Read the working file at the start of every task. Claims go through the Memory API; next actions through the Task API. Never name the ledger file, SQL, Cypher, a plugin, a Notion database, or a task-store path. Use the names vault inbox, working file, drafts folder, PARA. One file owner per file. Handoffs stay in the group chat.
+You share one computer with Conductor, Capture, Memory, Ops, and Research. Files and logins are visible to all of them. Read the working file at the start of every task. Claims go through the Memory API; next actions through the Task API. Memory API verbs are `append`, `get`, `query`, `set_status`, `current`, `as_of`, and `related`. Only Memory may `append` and `set_status`. All five may `get`, `query`, `current`, `as_of`, and `related`. Never name the ledger file, SQL, Cypher, Graphiti episodes, a plugin, a Notion database, or a task-store path. Use the names vault inbox, working file, drafts folder, PARA. One file owner per file. Handoffs stay in the group chat.
 <!-- /template:shared-preamble -->
 
 <!-- template:bot-conductor -->

@@ -10,6 +10,7 @@ export type Connectors = "none" | "todoist" | "notion-class";
 export type TaskBackend = "markdown" | "todoist" | "notion-class";
 export type GtdOption = "off" | "hybrid" | "full";
 export type LadderRung = "jsonl" | "sqlite" | "graphiti";
+export type GraphitiStore = "neo4j" | "falkordb";
 export type SourceWriteBack = "tag" | "archive" | "leave" | "delete";
 
 export type ExtraInbox = {
@@ -26,6 +27,7 @@ export type Answers = {
   gtdOption: GtdOption;
   extraInboxes: readonly ExtraInbox[];
   ladderRung: LadderRung;
+  graphitiStore: GraphitiStore;
 };
 
 export const WORKED_EXAMPLE = {
@@ -37,6 +39,7 @@ export const WORKED_EXAMPLE = {
   gtdOption: "off",
   extraInboxes: [],
   ladderRung: "jsonl",
+  graphitiStore: "neo4j",
 } as const satisfies Answers;
 
 export function fill(args: {
@@ -104,7 +107,7 @@ function slotsFor(args: { answers: Answers; sharedPreamble: string }): Record<st
     ops_deliverable: opsDeliverable(answers.gtdOption),
     gtd_drop: gtdDrop(answers),
     connectors_step: connectorsStep(answers.connectors),
-    ladder_step: ladderStep(answers.ladderRung),
+    ladder_step: ladderStep(answers),
     routines_step: routinesStep({ gtdOption: answers.gtdOption, offBoxCopy: answers.offBoxCopy }),
     off_box_step: offBoxStep(answers.offBoxCopy),
   };
@@ -276,16 +279,25 @@ function connectorsStep(connectors: Connectors): string {
   }
 }
 
-function ladderStep(ladderRung: LadderRung): string {
-  switch (ladderRung) {
+function ladderStep(answers: Pick<Answers, "ladderRung" | "graphitiStore">): string {
+  switch (answers.ladderRung) {
     case "jsonl":
       return "Ladder rung is JSONL. Do not stand up Neo4j or FalkorDB.";
     case "sqlite":
-      return "Ladder rung is SQLite. Do not stand up a graph server.";
+      return "Ladder rung is SQLite. Do not stand up Neo4j or FalkorDB.";
     case "graphiti":
-      return "Ladder rung is Graphiti. Stand up the chosen graph store only now.";
+      switch (answers.graphitiStore) {
+        case "neo4j":
+          return "Ladder rung is Graphiti. Stand up Neo4j only now.";
+        case "falkordb":
+          return "Ladder rung is Graphiti. Stand up FalkorDB only now.";
+        default: {
+          const _exhaustive: never = answers.graphitiStore;
+          return _exhaustive;
+        }
+      }
     default: {
-      const _exhaustive: never = ladderRung;
+      const _exhaustive: never = answers.ladderRung;
       return _exhaustive;
     }
   }

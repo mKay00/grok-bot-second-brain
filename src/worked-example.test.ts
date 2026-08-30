@@ -212,7 +212,7 @@ test("filling the worked example emits the default-stack setup prompt and copied
 });
 
 const NEVER_NAME_SENTENCE =
-  "Never name the ledger file, SQL, Cypher, a plugin, a Notion database, or a task-store path.";
+  "Never name the ledger file, SQL, Cypher, Graphiti episodes, a plugin, a Notion database, or a task-store path.";
 
 function extractDescriptions(setupPrompt: string): string[] {
   const matches = [...setupPrompt.matchAll(/```description\n([\s\S]*?)```/g)];
