@@ -1,3 +1,7 @@
+## Setup
+
+Live Grok Bot roster: `README.md`. Interview from `PLAN.md`, interpolate like `src/fill.ts`, guide the human through the official UI.
+
 ## Agent skills
 
 ### Issue tracker
