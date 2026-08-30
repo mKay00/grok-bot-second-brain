@@ -137,7 +137,7 @@ The empty cloneable tree: a vault, a memory directory for the ledger, and the ma
 _Avoid_: vault (for this repo), second brain (for the folder)
 
 **Off-box copy**:
-A copy of the live second-brain path that is not only on the shared computer. The path is the vault, the ledger directory, and the markdown task store when that store is live. Methods are git remote, a folder on a machine they own, or cloud storage. Skip is an answer.
+A copy of the live second-brain path that is not only on the shared computer. The path is the vault, the ledger directory, the install metadata, and the markdown task store when that store is live. Methods are git remote, a folder on a machine they own, or cloud storage. Skip is an answer.
 _Avoid_: local backup, backup (for this copy)
 
 **Task backend**:
@@ -169,8 +169,29 @@ The person's name asked at setup. Fills the `aliases.csv` `me` row and the worki
 _Avoid_: Mario, a baked identity in the repo
 
 **Setup questionnaire**:
-The questions that pick a concrete version: display name, path on the shared computer, off-box copy, which connectors will be installed, task backend, GTD option, mail-in-review, extra inboxes and write-back, ladder rung, and Graphiti store if that rung. It lives in `PLAN.md` as one template with slots. It does not run the bots. It does not ask plan, timezone, or which app talks to the bots. It holds no personal answers.
-_Avoid_: installer, wizard (unless it only asks), one file per combination, official client (as a question), Mario appendix
+The questions that pick a concrete configuration: display name, path on the shared computer, off-box copy, which connectors will be installed, task backend, GTD option, mail-in-review, extra inboxes and write-back, ladder rung, and Graphiti store if that rung. It lives in `PLAN.md` as one template with slots. It does not run the bots. It does not ask plan, timezone, or which app talks to the bots. The repo holds no personal answers.
+_Avoid_: installer, wizard (unless it only asks), one file per combination, official client (as a question), Mario appendix, concrete version (for this questionnaire)
+
+**Install answers**:
+The questionnaire answers persisted on the live path so setup and upgrade can re-fill prompts without inventing slots. Lives beside the vault and ledger, not inside the ledger directory. Part of the off-box copy.
+_Avoid_: answers in the repo, answers inside memory/, questionnaire (for the saved file)
+
+**Plan version**:
+How far this live install has applied changes from the consolidation plan. An integer on the live path next to the install answers. Missing means the install predates versioning. Upgrade only moves this number forward toward the repo’s latest; if the path is ahead of the landed repo, stop.
+_Avoid_: ladder rung, git tag, questionnaire configuration, schema version (unqualified), downgrade
+
+**Prompts version**:
+The plan version at which bot descriptions were last successfully re-pasted on this install. The upgrade prompt re-pastes all five when prompts version is behind and any applied step touched prompt templates.
+_Avoid_: bot prompt (for this stamp), plan version (unqualified)
+
+**Plan migration**:
+One ordered step that advances plan version: vault contract, directories, install-answer shape, bot prompts, additive claim-field shape on the current ledger engine, or other plan-shaped behavior. Optional shell script when hand edits are error-prone. Destructive claim rewrites need an explicit human stop. Not a ledger-engine cutover on the upgrade ladder.
+_Avoid_: migration (unqualified), upgrade ladder, migration rewrite, npm migrate
+
+**Upgrade prompt**:
+The generated instructions a setup-helper bot follows to apply pending plan migrations on an existing install: run each step’s transforms (markdown instructions and optional shell script), re-ask new questionnaire slots, re-paste all five bot descriptions when any prompt template changed, then bump plan version. Not a second full setup and not a roster member’s standing job.
+_Avoid_: setup prompt (for this), migrate CLI, Memory routine (for plan catch-up), re-paste only dirty bots
+
 
 **Bot prompt**:
 The official Grok Bot description for one roster member. A shared preamble plus that bot's outcome, sources, constraints, deliverable, review point, and never-do. Setup interpolates the GTD option, extra inboxes, source write-back, Task API verbs, and off-box copy method. Not a skill, not a routine, and not the first-task test.

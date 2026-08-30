@@ -76,6 +76,7 @@ test("the copy is the whole path, Graphiti is out, and restore is copy that tree
     const prompt = fillPrompt(answers);
     assert.match(prompt, /vault/i);
     assert.match(prompt, /ledger directory/i);
+    assert.match(prompt, /install metadata/i);
     assert.match(prompt, /markdown task store/i);
     assert.match(prompt, /JSONL/);
     assert.match(prompt, /SQLite/);

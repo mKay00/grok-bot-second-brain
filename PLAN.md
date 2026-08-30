@@ -53,7 +53,9 @@ Fill these when you stand it up. Combinations are slots, not files. This repo ho
 
 Skipped-slot defaults: path `/workspace/second-brain/`, connectors none, backend markdown, mail-in-review off, extra inboxes empty, write-back tag, ladder JSONL, Graphiti store Neo4j. Display name, GTD option, and off-box copy have no silent default.
 
-The off-box copy is the whole path: vault, ledger directory, and the markdown task store when that store is live. JSONL and SQLite files under that path are in. A Graphiti store is not. Restore is copy that tree back onto the path. No sync daemon on the VM. Git and cloud install a daily Memory routine that no-ops if the path has not changed. Folder and skip install no standing copy routine. Every GTD option installs a monthly Memory decay routine: `current` claims unused 30 days (by `last_used`, or `recorded_at` if never read) are proposed `decayed`. That selection does not record use. Then stop for approval before `set_status`.
+The off-box copy is the whole path: vault, ledger directory, install metadata, and the markdown task store when that store is live. JSONL and SQLite files under that path are in. A Graphiti store is not. Restore is copy that tree back onto the path. No sync daemon on the VM. Git and cloud install a daily Memory routine that no-ops if the path has not changed. Folder and skip install no standing copy routine. Every GTD option installs a monthly Memory decay routine: `current` claims unused 30 days (by `last_used`, or `recorded_at` if never read) are proposed `decayed`. That selection does not record use. Then stop for approval before `set_status`.
+
+Setup writes `install/answers.json`, `install/plan-version`, and `install/prompts-version` on the live path. Later catch-up uses plan migrations and an upgrade prompt, not a second full setup. Upgrade-ladder rung cutovers are not plan migrations.
 
 ## Worked example
 
@@ -163,7 +165,7 @@ Grok Bot already works on SuperGrok Plus, SuperGrok Heavy, Cursor Pro+, Cursor U
 
 ## Copy the vault template
 
-Copy `vault-template/` onto `{{path}}`. That is the vault, the ledger directory{{task_store_copy_clause}}.
+Copy `vault-template/` onto `{{path}}`. That is the vault, the ledger directory, and install metadata{{task_store_copy_clause}}. Write `install/answers.json` from the questionnaire, and set `install/plan-version` and `install/prompts-version` to the latest plan migration number in this repo.
 
 {{task_store_keep}}
 {{gtd_drop}}
@@ -236,3 +238,7 @@ Run these after the bots exist. Pass is the deliverable plus the never-do. Fail 
 
 {{off_box_step}}
 <!-- /template:setup-prompt -->
+
+<!-- template:upgrade-prompt -->
+{{upgrade_body}}
+<!-- /template:upgrade-prompt -->

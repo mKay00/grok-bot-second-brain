@@ -79,6 +79,7 @@ test("vault template matches the filesystem contract", () => {
   assert.ok(schema.includes("YYYY-MM-DDTHH:MMZ | source:<name> | text"));
   assert.ok(schema.includes("writeback:<tag|archive|leave|delete>"));
   assert.ok(schema.includes("memory/"));
+  assert.ok(schema.includes("install/"));
   assert.ok(schema.includes("tasks/"));
   assert.ok(!schema.includes("valid_from"), "claim fields must stay out of SCHEMA");
 

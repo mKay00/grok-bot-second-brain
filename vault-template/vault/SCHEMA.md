@@ -1,6 +1,6 @@
 # Vault contract
 
-This folder is the vault. The ledger directory (`memory/`) and the markdown task store (`tasks/`) sit beside it, not inside PARA.
+This folder is the vault. The ledger directory (`memory/`), install metadata (`install/`), and the markdown task store (`tasks/`) sit beside it, not inside PARA.
 
 ## Tree
 

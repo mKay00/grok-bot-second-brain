@@ -1,5 +1,7 @@
-import { cpSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { headPlanVersion } from "./migrations.ts";
+import { interpolate, readTemplate } from "./plan-template.ts";
 
 export type OffBoxCopy =
   | { kind: "skip" }
@@ -52,6 +54,7 @@ export function fill(args: {
   planPath: string;
   templateDir: string;
   destDir: string;
+  migrationsDir?: string;
 }): { setupPrompt: string } {
   assertLiveBackend({ answers: args.answers });
   const plan = readFileSync(args.planPath, "utf8");
@@ -61,7 +64,30 @@ export function fill(args: {
     templateDir: args.templateDir,
     destDir: args.destDir,
   });
+  const migrationsDir =
+    args.migrationsDir ?? path.join(path.dirname(args.planPath), "migrations");
+  writeInstallMetadata({
+    answers: args.answers,
+    destDir: args.destDir,
+    planVersion: headPlanVersion(migrationsDir),
+  });
   return { setupPrompt };
+}
+
+export function writeInstallMetadata(args: {
+  answers: Answers;
+  destDir: string;
+  planVersion: number;
+  promptsVersion?: number;
+}): void {
+  const installDir = path.join(args.destDir, "install");
+  mkdirSync(installDir, { recursive: true });
+  writeFileSync(`${installDir}/answers.json`, `${JSON.stringify(args.answers, null, 2)}\n`);
+  writeFileSync(`${installDir}/plan-version`, `${args.planVersion}\n`);
+  writeFileSync(
+    `${installDir}/prompts-version`,
+    `${args.promptsVersion ?? args.planVersion}\n`,
+  );
 }
 
 function assertLiveBackend(args: { answers: Answers }): void {
@@ -78,34 +104,53 @@ function assertLiveBackend(args: { answers: Answers }): void {
 }
 
 function renderSetupPrompt(args: { plan: string; answers: Answers }): string {
+  const bots = renderBotDescriptions(args);
   const shared = readTemplate({ plan: args.plan, name: "shared-preamble" });
   const slots = slotsFor({ answers: args.answers, sharedPreamble: shared });
-  const bots = {
-    bot_conductor: interpolate({
+  return interpolate({
+    text: readTemplate({ plan: args.plan, name: "setup-prompt" }),
+    slots: {
+      ...slots,
+      bot_conductor: bots.conductor,
+      bot_capture: bots.capture,
+      bot_memory: bots.memory,
+      bot_ops: bots.ops,
+      bot_research: bots.research,
+    },
+  });
+}
+
+export function renderBotDescriptions(args: { plan: string; answers: Answers }): {
+  conductor: string;
+  capture: string;
+  memory: string;
+  ops: string;
+  research: string;
+} {
+  const shared = readTemplate({ plan: args.plan, name: "shared-preamble" });
+  const slots = slotsFor({ answers: args.answers, sharedPreamble: shared });
+  return {
+    conductor: interpolate({
       text: readTemplate({ plan: args.plan, name: "bot-conductor" }),
       slots,
     }),
-    bot_capture: interpolate({
+    capture: interpolate({
       text: readTemplate({ plan: args.plan, name: "bot-capture" }),
       slots,
     }),
-    bot_memory: interpolate({
+    memory: interpolate({
       text: readTemplate({ plan: args.plan, name: "bot-memory" }),
       slots,
     }),
-    bot_ops: interpolate({
+    ops: interpolate({
       text: readTemplate({ plan: args.plan, name: "bot-ops" }),
       slots,
     }),
-    bot_research: interpolate({
+    research: interpolate({
       text: readTemplate({ plan: args.plan, name: "bot-research" }),
       slots,
     }),
   };
-  return interpolate({
-    text: readTemplate({ plan: args.plan, name: "setup-prompt" }),
-    slots: { ...slots, ...bots },
-  });
 }
 
 function slotsFor(args: { answers: Answers; sharedPreamble: string }): Record<string, string> {
@@ -503,7 +548,7 @@ function routinesStep(args: { gtdOption: GtdOption; offBoxCopy: OffBoxCopy }): s
 
 function offBoxStep(offBoxCopy: OffBoxCopy): string {
   const pathContract =
-    "The copy is the whole path: vault, ledger directory, and the markdown task store when that store is live. JSONL and SQLite files under that path are in. A Graphiti store is not. Restore is copy that tree back onto the path. No sync daemon on the VM.";
+    "The copy is the whole path: vault, ledger directory, install metadata, and the markdown task store when that store is live. JSONL and SQLite files under that path are in. A Graphiti store is not. Restore is copy that tree back onto the path. No sync daemon on the VM.";
   switch (offBoxCopy.kind) {
     case "skip":
       return "Off-box copy is skip. Do not copy the path off this computer during setup.";
@@ -574,28 +619,4 @@ function writeDisplayName(args: { displayName: string; destDir: string }): void 
     throw new Error("working file is missing an empty Identity section");
   }
   writeFileSync(workingPath, updated);
-}
-
-function readTemplate(args: { plan: string; name: string }): string {
-  const start = `<!-- template:${args.name} -->`;
-  const end = `<!-- /template:${args.name} -->`;
-  const from = args.plan.indexOf(start);
-  const to = args.plan.indexOf(end);
-  if (from === -1 || to === -1 || to <= from) {
-    throw new Error(`PLAN.md is missing template ${args.name}`);
-  }
-  return args.plan.slice(from + start.length, to).trim();
-}
-
-function interpolate(args: { text: string; slots: Record<string, string> }): string {
-  return args.text.replaceAll(/\{\{([a-z_]+)\}\}/g, (_match, key: string) => {
-    if (!(key in args.slots)) {
-      throw new Error(`unknown slot ${key}`);
-    }
-    const value = args.slots[key];
-    if (value === undefined) {
-      throw new Error(`unknown slot ${key}`);
-    }
-    return value;
-  });
 }
