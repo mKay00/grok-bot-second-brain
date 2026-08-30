@@ -6,7 +6,10 @@ export type OffBoxCopy =
   | { kind: "folder" }
   | { kind: "git"; remoteUrl: string }
   | { kind: "cloud"; product: string };
-export type Connectors = "none" | "todoist" | "notion-class";
+export type Connectors =
+  | { kind: "none" }
+  | { kind: "todoist" }
+  | { kind: "notion-class"; product: string };
 export type TaskBackend = "markdown" | "todoist" | "notion-class";
 export type GtdOption = "off" | "hybrid" | "full";
 export type LadderRung = "jsonl" | "sqlite" | "graphiti";
@@ -35,7 +38,7 @@ export const WORKED_EXAMPLE = {
   displayName: "Example",
   path: "/workspace/second-brain/",
   offBoxCopy: { kind: "skip" },
-  connectors: "none",
+  connectors: { kind: "none" },
   taskBackend: "markdown",
   gtdOption: "off",
   mailInReview: false,
@@ -50,6 +53,7 @@ export function fill(args: {
   templateDir: string;
   destDir: string;
 }): { setupPrompt: string } {
+  assertLiveBackend({ answers: args.answers });
   const plan = readFileSync(args.planPath, "utf8");
   const setupPrompt = renderSetupPrompt({ plan, answers: args.answers });
   copyTree({
@@ -58,6 +62,19 @@ export function fill(args: {
     destDir: args.destDir,
   });
   return { setupPrompt };
+}
+
+function assertLiveBackend(args: { answers: Answers }): void {
+  const { answers } = args;
+  if (answers.taskBackend === "todoist" && answers.connectors.kind !== "todoist") {
+    throw new Error("Todoist is not a live backend unless that connector will be installed");
+  }
+  if (answers.taskBackend === "notion-class" && answers.connectors.kind !== "notion-class") {
+    throw new Error("Notion-class is not a live backend unless that connector will be installed");
+  }
+  if (answers.connectors.kind === "notion-class" && answers.connectors.product.trim() === "") {
+    throw new Error("Notion-class asks for a product name");
+  }
 }
 
 function renderSetupPrompt(args: { plan: string; answers: Answers }): string {
@@ -113,6 +130,9 @@ function slotsFor(args: { answers: Answers; sharedPreamble: string }): Record<st
     task_api_verbs: taskApiVerbs(answers.gtdOption),
     ops_deliverable: opsDeliverable(answers.gtdOption),
     gtd_drop: gtdDrop(answers),
+    task_store_copy_clause: taskStoreCopyClause(answers.taskBackend),
+    task_store_keep: taskStoreKeep(answers),
+    task_store_binding: taskStoreBinding(answers),
     connectors_step: connectorsStep(answers.connectors),
     ladder_step: ladderStep(answers),
     routines_step: routinesStep({ gtdOption: answers.gtdOption, offBoxCopy: answers.offBoxCopy }),
@@ -229,7 +249,7 @@ function memoryInflight(gtdOption: GtdOption): string {
 
 function gtdContract(gtdOption: GtdOption): string {
   const base =
-    "A GTD project is an outcome in the task backend, not a PARA folder. No Todoist-to-markdown sync.";
+    "A GTD project is an outcome in the task backend, not a PARA folder. No Todoist-to-markdown sync. Switching stores later is a human move. No export. No cutover job.";
   switch (gtdOption) {
     case "full":
       return `${base} Someday is incubate, not a resource.`;
@@ -323,9 +343,99 @@ function opsDeliverable(gtdOption: GtdOption): string {
   }
 }
 
+function taskStoreCopyClause(taskBackend: TaskBackend): string {
+  switch (taskBackend) {
+    case "markdown":
+      return ", and the markdown task store";
+    case "todoist":
+    case "notion-class":
+      return "";
+    default: {
+      const _exhaustive: never = taskBackend;
+      return _exhaustive;
+    }
+  }
+}
+
+function taskStoreKeep(answers: Pick<Answers, "taskBackend" | "connectors">): string {
+  switch (answers.taskBackend) {
+    case "markdown":
+      return "The live store is markdown, so keep `tasks/`.";
+    case "todoist":
+      return "The live store is Todoist. Omit `tasks/`.";
+    case "notion-class":
+      return `The live store is ${notionProduct(answers.connectors)}. Omit \`tasks/\`.`;
+    default: {
+      const _exhaustive: never = answers.taskBackend;
+      return _exhaustive;
+    }
+  }
+}
+
+function notionProduct(connectors: Connectors): string {
+  if (connectors.kind !== "notion-class") {
+    throw new Error("Notion-class asks for a product name");
+  }
+  return connectors.product;
+}
+
+function taskStoreBinding(answers: Answers): string {
+  switch (answers.taskBackend) {
+    case "markdown":
+      return markdownBinding(answers.gtdOption);
+    case "todoist":
+      return todoistBinding(answers.gtdOption);
+    case "notion-class":
+      return notionBinding();
+    default: {
+      const _exhaustive: never = answers.taskBackend;
+      return _exhaustive;
+    }
+  }
+}
+
+function markdownBinding(gtdOption: GtdOption): string {
+  const row = "A row is a checkbox line with optional `due:YYYY-MM-DD`.";
+  switch (gtdOption) {
+    case "off":
+      return `${row} \`add\` and \`complete\` write the next list. \`list_open\` is not-done items on the next list only.`;
+    case "hybrid":
+      return `${row} A heading on the next list is a GTD project and must match a line on the projects list. Loose next actions sit above any heading.`;
+    case "full":
+      return `${row} On full, a row may carry \`#context\` tags. A heading on the next list is a GTD project and must match a line on the projects list. Loose next actions sit above any heading.`;
+    default: {
+      const _exhaustive: never = gtdOption;
+      return _exhaustive;
+    }
+  }
+}
+
+function todoistBinding(gtdOption: GtdOption): string {
+  const verbs =
+    "`add` and `complete` write tasks in Next. `list_open` is not-done tasks in Next. Inbox is not Next.";
+  const join =
+    "A GTD project is one task in Projects. A next action is a task in Next. The join is a section on Next whose name matches that outcome. Loose next actions have no section.";
+  switch (gtdOption) {
+    case "off":
+      return `Off uses Next. ${verbs}`;
+    case "hybrid":
+      return `Hybrid uses Next and Projects. ${verbs} ${join}`;
+    case "full":
+      return `Full uses Next, Waiting For, Someday, and Projects, four of five Beginner slots. ${verbs} ${join} Contexts are labels on Next. \`set_list\` off Next drops the section.`;
+    default: {
+      const _exhaustive: never = gtdOption;
+      return _exhaustive;
+    }
+  }
+}
+
+function notionBinding(): string {
+  return "One tasks database. A list property holds next, waiting, or someday. GTD project and contexts are properties. \`complete\` uses the native done status. Not the vault, not the ledger, not a second store.";
+}
+
 function gtdDrop(answers: Answers): string {
   if (answers.taskBackend !== "markdown") {
-    return "The live store is not markdown. Omit `tasks/`.";
+    return "";
   }
   switch (answers.gtdOption) {
     case "off":
@@ -342,12 +452,13 @@ function gtdDrop(answers: Answers): string {
 }
 
 function connectorsStep(connectors: Connectors): string {
-  switch (connectors) {
+  switch (connectors.kind) {
     case "none":
       return "Connectors are none. Do not install a task connector.";
     case "todoist":
+      return "Install the Todoist connector in Settings before the bots are created.";
     case "notion-class":
-      return "Install the named connector in Settings before the bots are created.";
+      return `Install the ${connectors.product} connector in Settings before the bots are created.`;
     default: {
       const _exhaustive: never = connectors;
       return _exhaustive;

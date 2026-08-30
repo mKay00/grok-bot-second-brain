@@ -16,7 +16,7 @@ PARA folders are always present. Forte's four categories are Projects, Areas, Re
 
 The clarify fork stays on for every GTD option. GTD's own steps start with capture, then clarify: define a concrete next step or a successful outcome, or drop the item. See `sources/gtd-what-is-gtd.md`. Action and knowledge do not share a record unless the item is truly both.
 
-GTD itself is optional. Off keeps the fork, PARA, and a flat next list. Hybrid adds a projects list and Conductor as the short weekly review. Full keeps hybrid, plus Waiting For, Someday, contexts, the official eleven-step weekly review, and the 2-minute rule as a Capture clarify instruction. A GTD project is an outcome in the task backend, not a PARA folder. Someday is incubate, not a resource. No tickler. No extra bot. No Todoist-to-markdown sync. This plan's worked example is off.
+GTD itself is optional. Off keeps the fork, PARA, and a flat next list. Hybrid adds a projects list and Conductor as the short weekly review. Full keeps hybrid, plus Waiting For, Someday, contexts, the official eleven-step weekly review, and the 2-minute rule as a Capture clarify instruction. A GTD project is an outcome in the task backend, not a PARA folder. Someday is incubate, not a resource. No tickler. No extra bot. No Todoist-to-markdown sync. Switching stores later is a human move. No export. No cutover job. This plan's worked example is off.
 
 The default ledger engine is JSONL. SQLite is the next engine when filtered reads hurt, around one to three thousand claims. That mark is a JSONL-pain tripwire, not a SQLite capacity limit. Graphiti earns its keep for paths or time-travel. Every rung sits behind the same Memory API. See `research/how-do-we-upgrade-jsonl-to-sqlite-to-a-kg.md`.
 
@@ -131,7 +131,7 @@ Outcome: Next actions in the task backend, including "read this."
 
 Sources: Working file. Group chat (Capture fork = action, Conductor's next task). Memory API reads.
 
-Constraints: Task API writes only. Verbs are {{task_api_verbs}}. Never name the store.
+Constraints: Task API writes only. Verbs are {{task_api_verbs}}. {{task_store_binding}} Never name the store.
 
 Deliverable: {{ops_deliverable}}
 
@@ -163,9 +163,12 @@ Grok Bot already works on SuperGrok Plus, SuperGrok Heavy, Cursor Pro+, Cursor U
 
 ## Copy the vault template
 
-Copy `vault-template/` onto `{{path}}`. That is the vault, the ledger directory, and the markdown task store.
+Copy `vault-template/` onto `{{path}}`. That is the vault, the ledger directory{{task_store_copy_clause}}.
 
-The live store is markdown, so keep `tasks/`. {{gtd_drop}}
+{{task_store_keep}}
+{{gtd_drop}}
+
+{{task_store_binding}}
 
 {{gtd_contract}}
 
