@@ -6,6 +6,12 @@ export type Connectors = "none" | "todoist" | "notion-class";
 export type TaskBackend = "markdown" | "todoist" | "notion-class";
 export type GtdOption = "off" | "hybrid" | "full";
 export type LadderRung = "jsonl" | "sqlite" | "graphiti";
+export type SourceWriteBack = "tag" | "archive" | "leave" | "delete";
+
+export type ExtraInbox = {
+  name: string;
+  writeBack: SourceWriteBack;
+};
 
 export type Answers = {
   displayName: string;
@@ -14,7 +20,7 @@ export type Answers = {
   connectors: Connectors;
   taskBackend: TaskBackend;
   gtdOption: GtdOption;
-  extraInboxes: readonly string[];
+  extraInboxes: readonly ExtraInbox[];
   ladderRung: LadderRung;
 };
 
@@ -129,25 +135,28 @@ function conductorGtd(gtdOption: GtdOption): string {
   }
 }
 
-function captureSources(extraInboxes: readonly string[]): string {
+function captureSources(extraInboxes: readonly ExtraInbox[]): string {
   if (extraInboxes.length === 0) {
     return "No extra inboxes named at setup.";
   }
-  return `Extra inboxes: ${extraInboxes.join(", ")}.`;
+  return `Extra inboxes: ${extraInboxes.map((inbox) => inbox.name).join(", ")}.`;
 }
 
-function captureConstraints(extraInboxes: readonly string[]): string {
+function captureConstraints(extraInboxes: readonly ExtraInbox[]): string {
   if (extraInboxes.length === 0) {
     return "The vault inbox is the only inbox.";
   }
-  return "Source write-back is setup-bound: tag, archive, leave, or delete; default tag. Write-back runs when the vault-inbox line is removed, not at copy.";
+  const bindings = extraInboxes
+    .map((inbox) => `${inbox.name}: ${inbox.writeBack}`)
+    .join("; ");
+  return `Source write-back: ${bindings}. Write-back runs when the vault-inbox line is removed after the fork, not at copy.`;
 }
 
-function captureDeliverable(extraInboxes: readonly string[]): string {
+function captureDeliverable(extraInboxes: readonly ExtraInbox[]): string {
   if (extraInboxes.length === 0) {
     return "No source write-back.";
   }
-  return "Apply source write-back when that line is removed.";
+  return "Copies from an extra inbox include `writeback:` in the line. Apply that source write-back when the line is removed.";
 }
 
 function memoryCopy(offBoxCopy: OffBoxCopy): string {

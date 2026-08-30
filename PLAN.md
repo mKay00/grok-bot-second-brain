@@ -42,7 +42,7 @@ Fill these when you stand it up. Combinations are slots, not files. This repo ho
 6. **Live task backend.** Markdown plus only the connectors you will install. Never offer a store you will not connect. Browser-clicking the task app is recovery, not a questionnaire option.
 7. **GTD option.** Off, hybrid, or full. Must answer. No silent default.
 8. **Mail-in-review**, only if hybrid or full. Default off. Warning: it archives mail by hand, and does not delete. No Gmail API. No bot with mail access. Off does not get this question.
-9. **Extra inboxes.** One name per line. Empty means the vault inbox only. Help text may say mail is an example. No preset list.
+9. **Extra inboxes.** One name per line. Empty means the vault inbox only. Mail is an example. No preset list.
 10. **Write-back** per extra name: tag, archive, leave, or delete. Default tag. Delete is irreversible. Runs when the vault-inbox line is removed, not at copy.
 11. **Ladder rung.** JSONL, SQLite, or Graphiti.
 12. **Graphiti store**, only on that rung: Neo4j or FalkorDB. Default Neo4j. Kuzu is not offered.
@@ -89,7 +89,7 @@ Never: Vault, ledger, any inbox, task backend, drafts, send, publish. No Memory 
 <!-- template:bot-capture -->
 {{shared_preamble}}
 
-Outcome: Every configured inbox copied into the vault inbox, then a clarify-fork proposal from there.
+Outcome: File owner of every configured inbox. Every configured inbox copied into the vault inbox, then a clarify-fork proposal from there. The vault inbox is the only place the clarify fork runs.
 
 Sources: Vault inbox. {{capture_sources}} Working file. Memory API reads.
 
